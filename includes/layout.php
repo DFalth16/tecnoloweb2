@@ -207,10 +207,6 @@ textarea.form-control{min-height:80px;resize:vertical}
       <span class="nb nb-c"><?= $eventosActivos ?></span>
     </a>
     <div class="sb-hr"></div>
-    <p class="sb-lbl">Gestión</p>
-    <a class="na <?= $activePage==='sedes'?'on':'' ?>" href="<?= BASE_URL ?>/sedes/index.php">
-      <span class="pip"></span><span class="i">⌂</span> Sedes
-    </a>
     <?php if (isAdmin()): ?>
     <div class="sb-hr"></div>
     <p class="sb-lbl">Sistema</p>

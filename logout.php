@@ -4,5 +4,5 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $_SESSION = [];
 session_destroy();
-header('Location: /drop/login.php');
+header('Location: /drop/tecnoloweb2/login.php');
 exit;

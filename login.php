@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Si ya está logueado, redirigir
 if (isset($_SESSION['user_id'])) {
-    header('Location: /drop/index.php');
+    header('Location: /drop/tecnoloweb2/index.php');
     exit;
 }
 
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_rol']       = $user['nombre_rol'];
             $_SESSION['user_id_rol']    = $user['id_rol'];
             
-            header('Location: /drop/index.php');
+            header('Location: /drop/tecnoloweb2/index.php');
             exit;
         } else {
             $error = 'Credenciales incorrectas o cuenta inactiva.';

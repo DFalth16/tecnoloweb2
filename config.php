@@ -12,7 +12,7 @@ define('DB_NAME', 'drop');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
-define('BASE_URL', '/drop');
+define('BASE_URL', '/drop/tecnoloweb2');
 
 // ── Conexión PDO ──
 function getDB(): PDO {

@@ -2,7 +2,7 @@
 /**
  * EventCore — Setup / Instalación
  * 
- * Ejecutar UNA VEZ: http://localhost/drop/setup.php
+ * Ejecutar UNA VEZ: http://localhost/drop/tecnoloweb2/setup.php
  * Después de ejecutar, BORRAR este archivo por seguridad.
  */
 
@@ -83,7 +83,7 @@ try {
     echo "  │ Reportes:    ana@eventcore.com   / rep123     │\n";
     echo "  └──────────────────────────────────────────────┘\n\n";
     echo "► Acceder al sistema:\n";
-    echo "  <a href='/drop/login.php' style='color:#a3e635'>http://localhost/drop/login.php</a>\n\n";
+    echo "  <a href='/drop/tecnoloweb2/login.php' style='color:#a3e635'>http://localhost/drop/tecnoloweb2/login.php</a>\n\n";
     echo "⚠ IMPORTANTE: Eliminar setup.php después de usar.\n";
     
     // Resumen de tablas
