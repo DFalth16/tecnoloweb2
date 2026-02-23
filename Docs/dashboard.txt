@@ -1,0 +1,754 @@
+<?php
+$stats = [
+    'total_eventos'             => 48,
+    'eventos_activos'           => 12,
+    'total_asistentes'          => 3847,
+    'total_ingresos'            => 127450.00,
+    'eventos_cancelados'        => 3,
+    'eventos_finalizados'       => 33,
+    'nuevos_inscritos_hoy'      => 24,
+    'porcentaje_ocupacion'      => 78.4,
+    'total_pagos_pendientes'    => 18,
+];
+$eventos = [
+    ['nombre'=>'Tech Summit 2025',    'fecha'=>'2025-07-15','inscritos'=>340,'cupo'=>400,'estado'=>'activo',    'cat'=>'Tecnología'],
+    ['nombre'=>'Workshop UX Design',  'fecha'=>'2025-07-18','inscritos'=>28, 'cupo'=>30, 'estado'=>'activo',    'cat'=>'Diseño'],
+    ['nombre'=>'Feria Emprendedora',  'fecha'=>'2025-07-22','inscritos'=>210,'cupo'=>500,'estado'=>'activo',    'cat'=>'Negocios'],
+    ['nombre'=>'Jazz & Blues Night',  'fecha'=>'2025-07-10','inscritos'=>180,'cupo'=>180,'estado'=>'finalizado','cat'=>'Cultura'],
+    ['nombre'=>'Maratón Solidaria',   'fecha'=>'2025-08-01','inscritos'=>95, 'cupo'=>200,'estado'=>'activo',    'cat'=>'Deporte'],
+];
+$actividad = [
+    ['accion'=>'Nueva inscripción','det'=>'María López → Tech Summit',   't'=>'hace 4 min', 'tipo'=>'ins'],
+    ['accion'=>'Pago confirmado',  'det'=>'Carlos Ruiz · $45.00',        't'=>'hace 11 min','tipo'=>'pay'],
+    ['accion'=>'Evento creado',    'det'=>'Bootcamp Python 2025',         't'=>'hace 58 min','tipo'=>'evt'],
+    ['accion'=>'Reporte generado', 'det'=>'Financiero — Junio 2025',      't'=>'hace 2h',    'tipo'=>'rpt'],
+    ['accion'=>'Cancelación',      'det'=>'Ana Torres → Workshop UX',    't'=>'hace 3h',    'tipo'=>'can'],
+    ['accion'=>'Nuevo asistente',  'det'=>'Luis Mora → Jazz Night',      't'=>'hace 5h',    'tipo'=>'ins'],
+];
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EventCore · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --c0:#04080f;
+  --c1:#080e1a;
+  --c2:#0c1525;
+  --border:rgba(255,255,255,0.055);
+  --border2:rgba(255,255,255,0.1);
+  --cyan:#00d4ff;
+  --cyan2:#0099cc;
+  --cyan-g:rgba(0,212,255,0.13);
+  --cyan-gs:rgba(0,212,255,0.055);
+  --lime:#a3e635;
+  --lime-g:rgba(163,230,53,0.11);
+  --rose:#ff4d6d;
+  --rose-g:rgba(255,77,109,0.1);
+  --amber:#f59e0b;
+  --amber-g:rgba(245,158,11,0.1);
+  --violet:#8b5cf6;
+  --violet-g:rgba(139,92,246,0.1);
+  --t1:#deeaf2;
+  --t2:#6e90a8;
+  --t3:#2e4d62;
+  --t4:#1b3044;
+  --sw:252px;
+  --r:14px;
+  --r2:9px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{
+  font-family:'Outfit',sans-serif;font-weight:300;
+  background:var(--c0);color:var(--t1);
+  min-height:100vh;overflow-x:hidden;cursor:none;
+}
+
+/* ── Custom cursor ── */
+#cr{position:fixed;width:8px;height:8px;background:var(--cyan);border-radius:50%;
+  pointer-events:none;z-index:9999;transform:translate(-50%,-50%);
+  transition:width .18s,height .18s;mix-blend-mode:screen}
+#cr2{position:fixed;width:34px;height:34px;border:1px solid rgba(0,212,255,.35);border-radius:50%;
+  pointer-events:none;z-index:9998;transform:translate(-50%,-50%);
+  transition:left .17s cubic-bezier(.23,1,.32,1),top .17s cubic-bezier(.23,1,.32,1),
+    width .22s,height .22s}
+
+/* ── Particle canvas ── */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
+
+/* ── Shell ── */
+.shell{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* ══ SIDEBAR ══ */
+.sb{
+  width:var(--sw);background:linear-gradient(180deg,#07101e 0%,#050a14 100%);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;z-index:200;overflow:hidden;
+}
+/* animated scan line */
+.sb::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent 0%,var(--cyan) 50%,transparent 100%);
+  background-size:200%;
+  animation:scanline 3s linear infinite;
+}
+@keyframes scanline{0%{background-position:200%}100%{background-position:-200%}}
+
+/* glow reflection */
+.sb::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:80px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,212,255,.07),transparent 70%);
+  pointer-events:none;
+}
+
+.sb-logo{padding:24px 18px 16px;display:flex;align-items:center;gap:11px;text-decoration:none;flex-shrink:0}
+.sb-icon{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  box-shadow:0 0 18px rgba(0,212,255,.4);
+  animation:iconpulse 3.5s ease-in-out infinite;
+}
+@keyframes iconpulse{0%,100%{box-shadow:0 0 18px rgba(0,212,255,.4)}50%{box-shadow:0 0 30px rgba(0,212,255,.7),0 0 50px rgba(0,212,255,.2)}}
+.sb-name{font-size:18px;font-weight:200;letter-spacing:.03em;
+  background:linear-gradient(135deg,#c8dfe8 30%,var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sb-name b{font-weight:500}
+
+.sb-lbl{font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--t4);padding:14px 18px 5px}
+
+nav{flex:1;overflow-y:auto;padding-bottom:10px}
+nav::-webkit-scrollbar{width:0}
+
+.na{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px;margin:1px 8px;border-radius:var(--r2);
+  color:var(--t2);font-size:13px;font-weight:300;text-decoration:none;
+  position:relative;overflow:hidden;
+  transition:color .22s,background .22s,padding-left .18s;
+}
+.na:hover{color:var(--t1);background:rgba(255,255,255,.028);padding-left:20px}
+.na.on{color:var(--cyan);background:var(--cyan-gs)}
+/* pip */
+.pip{position:absolute;left:0;top:20%;bottom:20%;width:2px;background:var(--cyan);
+  border-radius:0 2px 2px 0;box-shadow:0 0 8px var(--cyan);
+  transform:scaleY(0);transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
+.na.on .pip{transform:scaleY(1)}
+/* shimmer */
+.na::after{content:'';position:absolute;top:0;left:-70%;width:40%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);
+  transition:left .45s}
+.na:hover::after{left:130%}
+
+.na .i{font-size:14px;width:16px;text-align:center;flex-shrink:0;
+  transition:filter .22s}
+.na.on .i{filter:drop-shadow(0 0 5px rgba(0,212,255,.8))}
+.nb{margin-left:auto;font-size:10px;font-weight:400;font-family:'JetBrains Mono',monospace;
+  padding:2px 7px;border-radius:20px}
+.nb-c{background:var(--cyan-g);color:var(--cyan);border:1px solid rgba(0,212,255,.18)}
+.nb-a{background:var(--amber-g);color:var(--amber);border:1px solid rgba(245,158,11,.18)}
+.sb-hr{height:1px;background:var(--border);margin:9px 14px}
+
+.sb-user{padding:13px 14px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .2s}
+.sb-user:hover{background:rgba(255,255,255,.022)}
+.av{width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--violet),var(--cyan));
+  display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:500;
+  box-shadow:0 0 10px rgba(139,92,246,.3)}
+.un{font-size:12.5px;font-weight:400}
+.ur{font-size:10.5px;color:var(--t3);margin-top:1px}
+
+/* ══ MAIN ══ */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-width:0}
+
+/* topbar */
+.tb{position:sticky;top:0;z-index:100;height:58px;
+  background:rgba(4,8,15,.85);backdrop-filter:blur(22px);
+  border-bottom:1px solid var(--border);padding:0 26px;
+  display:flex;align-items:center;gap:12px}
+.tb-title{font-size:15px;font-weight:300;flex:1;letter-spacing:.01em}
+.tb-title span{display:block;font-size:10.5px;color:var(--t3);margin-top:1px;
+  font-family:'JetBrains Mono',monospace;font-weight:300}
+
+.btn{display:inline-flex;align-items:center;gap:6px;
+  padding:7px 15px;border-radius:8px;font-size:12.5px;font-weight:300;
+  font-family:'Outfit',sans-serif;cursor:pointer;border:none;text-decoration:none;
+  transition:all .2s;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);
+  transition:left .4s}
+.btn:hover::after{left:150%}
+.btn-g{background:transparent;color:var(--t2);border:1px solid var(--border2)}
+.btn-g:hover{color:var(--t1);border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.03)}
+.btn-p{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#000;font-weight:500;
+  box-shadow:0 0 16px rgba(0,212,255,.28)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 26px rgba(0,212,255,.5)}
+.ib{width:34px;height:34px;border-radius:8px;border:1px solid var(--border2);background:transparent;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;
+  color:var(--t2);font-size:15px;transition:all .2s}
+.ib:hover{color:var(--t1);background:rgba(255,255,255,.035)}
+.nd{position:absolute;top:6px;right:6px;width:6px;height:6px;background:var(--amber);
+  border-radius:50%;border:2px solid var(--c0);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── content ── */
+.con{padding:24px 26px 40px;flex:1}
+
+/* ── hero ── */
+.hero{
+  position:relative;overflow:hidden;border-radius:var(--r);
+  border:1px solid var(--border2);padding:30px 34px;margin-bottom:20px;
+  background:linear-gradient(135deg,rgba(0,212,255,.035) 0%,var(--c2) 60%,rgba(139,92,246,.025) 100%);
+  animation:riseUp .5s ease both;
+}
+/* rotating conic border */
+.hero::before{
+  content:'';position:absolute;inset:-1px;border-radius:calc(var(--r)+1px);z-index:0;
+  background:conic-gradient(from 0deg,transparent 70%,rgba(0,212,255,.5) 85%,transparent 100%);
+  animation:rotateBorder 6s linear infinite;
+  -webkit-mask:linear-gradient(#fff,#fff) content-box,linear-gradient(#fff,#fff);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:1px;
+}
+@keyframes rotateBorder{to{transform:rotate(360deg)}}
+
+.hero-orb1{position:absolute;top:-50%;right:-8%;width:360px;height:360px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,.1),transparent 65%);
+  animation:orb1 8s ease-in-out infinite;pointer-events:none;z-index:0}
+.hero-orb2{position:absolute;bottom:-60%;left:15%;width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(139,92,246,.07),transparent 65%);
+  animation:orb2 10s ease-in-out infinite;pointer-events:none;z-index:0}
+@keyframes orb1{0%,100%{transform:translate(0,0)}50%{transform:translate(-25px,18px)}}
+@keyframes orb2{0%,100%{transform:translate(0,0)}50%{transform:translate(18px,-22px)}}
+
+.hero-in{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.hero-eye{font-size:10.5px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.hero-eye::before{content:'';display:inline-block;width:18px;height:1px;background:var(--cyan)}
+.hero-h1{font-size:27px;font-weight:200;letter-spacing:-.025em;line-height:1.25;margin-bottom:9px}
+.hero-h1 strong{font-weight:500;color:var(--cyan)}
+.hero-sub{font-size:13px;color:var(--t2);font-weight:300;max-width:400px;line-height:1.65}
+.chips{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+  font-size:11.5px;font-weight:300;transition:transform .2s,box-shadow .2s;cursor:default}
+.chip:hover{transform:translateY(-2px)}
+.chip-c{background:var(--cyan-g);color:var(--cyan);border:1px solid rgba(0,212,255,.16)}
+.chip-l{background:var(--lime-g);color:var(--lime);border:1px solid rgba(163,230,53,.16)}
+.chip-a{background:var(--amber-g);color:var(--amber);border:1px solid rgba(245,158,11,.16)}
+.cdot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:blink 1.8s infinite}
+.hero-btns{display:flex;flex-direction:column;gap:9px;flex-shrink:0}
+
+/* ── stats grid ── */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px}
+.sc{
+  background:var(--c1);border:1px solid var(--border);border-radius:var(--r);
+  padding:19px 20px;position:relative;overflow:hidden;cursor:default;
+  opacity:0;transform:translateY(22px);
+  animation:riseUp .5s ease forwards;
+  transition:border-color .3s,transform .25s,box-shadow .3s;
+}
+.sc:hover{transform:translateY(-3px);
+  border-color:var(--sc,var(--cyan));
+  box-shadow:0 0 28px var(--sg,var(--cyan-g)),0 10px 28px rgba(0,0,0,.35)}
+
+/* top stripe */
+.sc-stripe{position:absolute;top:0;left:0;width:0;height:2px;
+  background:var(--sc,var(--cyan));border-radius:2px;
+  box-shadow:0 0 7px var(--sc,var(--cyan));
+  animation:growW .9s ease forwards}
+@keyframes growW{to{width:100%}}
+
+/* shimmer */
+.sc::after{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent);
+  animation:shimmer 5s ease-in-out infinite}
+@keyframes shimmer{0%,100%{left:-80%}65%{left:120%}}
+
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.sc-label{font-size:10px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.sc-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-size:16px;background:var(--sg,var(--cyan-g));color:var(--sc,var(--cyan));
+  transition:transform .25s}
+.sc:hover .sc-ico{transform:scale(1.12) rotate(6deg)}
+.sc-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:300;line-height:1;
+  color:var(--t1);letter-spacing:-.02em}
+.sc-val sup{font-size:16px;vertical-align:super;margin-right:2px;font-weight:300}
+.sc-meta{margin-top:9px;font-size:11.5px;color:var(--t3);display:flex;align-items:center;gap:5px}
+.up{color:var(--lime)}.dn{color:var(--rose)}
+
+@keyframes riseUp{to{opacity:1;transform:translateY(0)}}
+
+/* ── charts row ── */
+.cr{display:grid;grid-template-columns:1.55fr 1fr;gap:13px;margin-bottom:20px}
+.card{background:var(--c1);border:1px solid var(--border);border-radius:var(--r);padding:20px;
+  opacity:0;animation:riseUp .5s .3s ease forwards;transition:border-color .3s}
+.card:hover{border-color:rgba(255,255,255,.09)}
+.chd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.ctitle{font-size:13.5px;font-weight:400;letter-spacing:.01em}
+.csub{font-size:11px;color:var(--t3);margin-top:3px;font-weight:300}
+.live-p{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;
+  background:rgba(163,230,53,.09);color:var(--lime);border:1px solid rgba(163,230,53,.18);
+  font-size:10.5px;font-weight:400}
+.ld{width:5px;height:5px;border-radius:50%;background:var(--lime);animation:blink 1.3s infinite}
+
+.donut-w{display:flex;justify-content:center;margin-bottom:15px}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.dli{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:7px;
+  background:rgba(255,255,255,.022);border:1px solid var(--border);transition:all .2s}
+.dli:hover{background:rgba(255,255,255,.04);transform:scale(1.02)}
+.dld{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.dll{font-size:11.5px;color:var(--t2);font-weight:300}
+.dlv{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:400}
+
+/* ── bottom row ── */
+.br{display:grid;grid-template-columns:1.5fr 1fr;gap:13px}
+.card.b{animation-delay:.4s}
+.card.b2{animation-delay:.5s}
+
+/* table */
+.et{width:100%;border-collapse:collapse}
+.et th{font-size:9.5px;font-weight:500;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--t4);padding:0 11px 11px;text-align:left;border-bottom:1px solid var(--border)}
+.et td{padding:12px 11px;font-size:12.5px;color:var(--t2);font-weight:300;
+  border-bottom:1px solid var(--border);vertical-align:middle;transition:color .18s}
+.et tr:last-child td{border-bottom:none}
+.et tr{transition:background .15s}
+.et tr:hover td{background:rgba(255,255,255,.016);color:var(--t1)}
+.etn{color:var(--t1)!important;font-weight:400}
+.etc{font-size:10.5px;color:var(--t4);margin-top:2px}
+.obar{width:66px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;
+  overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px}
+.ofill{height:100%;border-radius:2px;width:0;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
+.sbg{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:300}
+.sbg.activo{background:rgba(163,230,53,.09);color:var(--lime)}
+.sbg.finalizado{background:rgba(255,255,255,.055);color:var(--t3)}
+.sbg.cancelado{background:var(--rose-g);color:var(--rose)}
+.sbg-d{width:4px;height:4px;border-radius:50%;background:currentColor}
+
+/* feed */
+.feed{display:flex;flex-direction:column;gap:1px}
+.fi{display:flex;align-items:flex-start;gap:11px;padding:10px 9px;border-radius:8px;
+  transition:background .15s;position:relative;overflow:hidden;
+  opacity:0;animation:riseUp .4s ease both}
+.fi::after{content:'';position:absolute;top:0;left:-70%;width:40%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);
+  opacity:0;transition:left .4s,opacity .2s}
+.fi:hover::after{left:120%;opacity:1}
+.fi:hover{background:rgba(255,255,255,.022)}
+.fic{width:28px;height:28px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:12px;margin-top:1px}
+.fi-i{background:var(--cyan-g);color:var(--cyan)}
+.fi-p{background:var(--lime-g);color:var(--lime)}
+.fi-e{background:var(--violet-g);color:var(--violet)}
+.fi-r{background:var(--amber-g);color:var(--amber)}
+.fi-c{background:var(--rose-g);color:var(--rose)}
+.fab{flex:1;min-width:0}
+.fan{font-size:12.5px;font-weight:400;color:var(--t1)}
+.fad{font-size:11px;color:var(--t3);margin-top:2px;font-weight:300;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fat{font-size:10.5px;color:var(--t4);white-space:nowrap;
+  font-family:'JetBrains Mono',monospace;font-weight:300}
+
+/* ── FAB ── */
+#fab{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  display:flex;align-items:center;justify-content:center;font-size:20px;color:#000;
+  cursor:pointer;z-index:300;transition:transform .2s,filter .2s;
+  animation:fabPulse 2.5s ease-in-out infinite}
+#fab:hover{transform:scale(1.12) rotate(10deg);filter:brightness(1.2)}
+@keyframes fabPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,.5)}
+  50%{box-shadow:0 0 0 14px rgba(0,212,255,0)}
+}
+
+/* delays */
+.d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.19s}.d4{animation-delay:.26s}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="cr"></div>
+<div id="cr2"></div>
+<canvas id="bg"></canvas>
+
+<div class="shell">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sb">
+  <a class="sb-logo" href="index.php">
+    <div class="sb-icon">⚡</div>
+    <span class="sb-name"><b>Event</b>Core</span>
+  </a>
+
+  <p class="sb-lbl">Principal</p>
+  <nav>
+    <a class="na on" href="index.php">
+      <span class="pip"></span><span class="i">⊞</span> Dashboard
+      <span class="nb nb-c">Hoy</span>
+    </a>
+    <a class="na" href="eventos/index.php">
+      <span class="pip"></span><span class="i">◉</span> Eventos
+      <span class="nb nb-c"><?= $stats['eventos_activos'] ?></span>
+    </a>
+    <a class="na" href="inscripciones/index.php">
+      <span class="pip"></span><span class="i">＋</span> Inscripciones
+      <span class="nb nb-a">3</span>
+    </a>
+    <a class="na" href="asistencia/index.php">
+      <span class="pip"></span><span class="i">✓</span> Asistencia
+    </a>
+    <div class="sb-hr"></div>
+    <p class="sb-lbl">Finanzas</p>
+    <a class="na" href="pagos/index.php">
+      <span class="pip"></span><span class="i">$</span> Pagos
+      <span class="nb nb-a"><?= $stats['total_pagos_pendientes'] ?></span>
+    </a>
+    <a class="na" href="reportes/reporte_financiero.php">
+      <span class="pip"></span><span class="i">↗</span> Financiero
+    </a>
+    <div class="sb-hr"></div>
+    <p class="sb-lbl">Análisis</p>
+    <a class="na" href="reportes/index.php">
+      <span class="pip"></span><span class="i">▦</span> Reportes
+    </a>
+    <a class="na" href="reportes/reporte_eventos.php">
+      <span class="pip"></span><span class="i">⬚</span> Reporte Eventos
+    </a>
+    <a class="na" href="reportes/reporte_asistencia.php">
+      <span class="pip"></span><span class="i">◈</span> Asistencia Rpt.
+    </a>
+    <div class="sb-hr"></div>
+    <p class="sb-lbl">Sistema</p>
+    <a class="na" href="usuarios/index.php">
+      <span class="pip"></span><span class="i">◯</span> Usuarios
+    </a>
+    <a class="na" href="configuracion/index.php">
+      <span class="pip"></span><span class="i">⚙</span> Configuración
+    </a>
+  </nav>
+
+  <div class="sb-user">
+    <div class="av">AD</div>
+    <div><div class="un">Administrador</div><div class="ur">Super Admin</div></div>
+    <span style="margin-left:auto;font-size:13px;color:var(--t4)">⋯</span>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="tb">
+    <div class="tb-title">
+      Panel de Control
+      <span id="clock">—</span>
+    </div>
+    <div class="ib"><span>🔔</span><span class="nd"></span></div>
+    <a href="reportes/exportar_excel.php" class="btn btn-g">↓ Excel</a>
+    <a href="reportes/exportar_pdf.php"   class="btn btn-g">↓ PDF</a>
+    <a href="eventos/crear.php" class="btn btn-p">＋ Nuevo Evento</a>
+  </header>
+
+  <div class="con">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-orb1"></div><div class="hero-orb2"></div>
+      <div class="hero-in">
+        <div>
+          <div class="hero-eye">Sistema de gestión interna</div>
+          <h1 class="hero-h1">Bienvenido de nuevo,<br><strong>Administrador</strong></h1>
+          <p class="hero-sub">Todo bajo control. Resumen en tiempo real de tu plataforma de eventos.</p>
+          <div class="chips">
+            <span class="chip chip-c"><span class="cdot"></span><?= $stats['eventos_activos'] ?> eventos activos</span>
+            <span class="chip chip-l"><span class="cdot"></span>+<?= $stats['nuevos_inscritos_hoy'] ?> inscritos hoy</span>
+            <span class="chip chip-a"><span class="cdot"></span>$<?= number_format($stats['total_ingresos'],0,',','.') ?> recaudados</span>
+          </div>
+        </div>
+        <div class="hero-btns">
+          <a href="eventos/crear.php"    class="btn btn-p" style="justify-content:center">＋ Crear Evento</a>
+          <a href="reportes/index.php"   class="btn btn-g" style="justify-content:center">Ver Reportes →</a>
+          <a href="asistencia/index.php" class="btn btn-g" style="justify-content:center">Control Asist.</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="sg">
+      <div class="sc d1" style="--sc:var(--cyan);--sg:var(--cyan-g)">
+        <div class="sc-stripe"></div>
+        <div class="sc-top"><div class="sc-label">Total Eventos</div><div class="sc-ico">📅</div></div>
+        <div class="sc-val"><span class="cu" data-v="<?= $stats['total_eventos'] ?>">0</span></div>
+        <div class="sc-meta"><span class="up">↑ 8%</span> vs mes anterior</div>
+      </div>
+      <div class="sc d2" style="--sc:var(--lime);--sg:var(--lime-g)">
+        <div class="sc-stripe" style="animation-delay:.1s"></div>
+        <div class="sc-top"><div class="sc-label">Eventos Activos</div><div class="sc-ico">⚡</div></div>
+        <div class="sc-val"><span class="cu" data-v="<?= $stats['eventos_activos'] ?>">0</span></div>
+        <div class="sc-meta"><span class="up">↑ 3</span> esta semana</div>
+      </div>
+      <div class="sc d3" style="--sc:var(--amber);--sg:var(--amber-g)">
+        <div class="sc-stripe" style="animation-delay:.2s"></div>
+        <div class="sc-top"><div class="sc-label">Asistentes Totales</div><div class="sc-ico">👥</div></div>
+        <div class="sc-val"><span class="cu" data-v="<?= $stats['total_asistentes'] ?>">0</span></div>
+        <div class="sc-meta"><span class="up">↑ 12%</span> crecimiento</div>
+      </div>
+      <div class="sc d4" style="--sc:var(--violet);--sg:var(--violet-g)">
+        <div class="sc-stripe" style="animation-delay:.3s"></div>
+        <div class="sc-top"><div class="sc-label">Ingresos Totales</div><div class="sc-ico">💰</div></div>
+        <div class="sc-val"><sup>$</sup><span class="cu" data-v="<?= $stats['total_ingresos'] ?>" data-fmt="k">0</span></div>
+        <div class="sc-meta"><span class="up">↑ 18%</span> este mes</div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="cr">
+      <div class="card">
+        <div class="chd">
+          <div><div class="ctitle">Inscripciones vs Asistentes</div><div class="csub">Últimos 6 meses</div></div>
+          <div class="live-p"><span class="ld"></span>En vivo</div>
+        </div>
+        <canvas id="lc" height="155"></canvas>
+      </div>
+      <div class="card">
+        <div class="chd">
+          <div><div class="ctitle">Estado de Eventos</div><div class="csub">Distribución actual</div></div>
+        </div>
+        <div class="donut-w"><canvas id="dc" width="148" height="148"></canvas></div>
+        <div class="dl">
+          <div class="dli"><span class="dld" style="background:var(--cyan)"></span><span class="dll">Activos</span><span class="dlv" style="color:var(--cyan)"><?= $stats['eventos_activos'] ?></span></div>
+          <div class="dli"><span class="dld" style="background:var(--lime)"></span><span class="dll">Finalizados</span><span class="dlv" style="color:var(--lime)"><?= $stats['eventos_finalizados'] ?></span></div>
+          <div class="dli"><span class="dld" style="background:var(--rose)"></span><span class="dll">Cancelados</span><span class="dlv" style="color:var(--rose)"><?= $stats['eventos_cancelados'] ?></span></div>
+          <div class="dli"><span class="dld" style="background:var(--amber)"></span><span class="dll">Pendientes</span><span class="dlv" style="color:var(--amber)">3</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM -->
+    <div class="br">
+      <!-- Tabla -->
+      <div class="card b">
+        <div class="chd">
+          <div><div class="ctitle">Eventos Recientes</div><div class="csub">Próximas e iniciativas activas</div></div>
+          <a href="eventos/index.php" class="btn btn-g" style="padding:5px 12px;font-size:11.5px">Ver todos →</a>
+        </div>
+        <table class="et">
+          <thead><tr><th>Evento</th><th>Fecha</th><th>Ocupación</th><th>Estado</th></tr></thead>
+          <tbody>
+          <?php foreach($eventos as $e):
+            $p=round($e['inscritos']*100/$e['cupo']);
+            $bc=$p>=90?'var(--rose)':($p>=60?'var(--amber)':'var(--cyan)');
+          ?>
+          <tr>
+            <td><div class="etn"><?= htmlspecialchars($e['nombre']) ?></div><div class="etc"><?= $e['cat'] ?></div></td>
+            <td><?= date('d M Y',strtotime($e['fecha'])) ?></td>
+            <td style="white-space:nowrap">
+              <span class="obar"><span class="ofill" data-w="<?= $p ?>" style="background:<?= $bc ?>"></span></span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:<?= $bc ?>"><?= $p ?>%</span>
+            </td>
+            <td><span class="sbg <?= $e['estado'] ?>"><span class="sbg-d"></span><?= ucfirst($e['estado']) ?></span></td>
+          </tr>
+          <?php endforeach ?>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Feed -->
+      <div class="card b2">
+        <div class="chd">
+          <div><div class="ctitle">Actividad Reciente</div><div class="csub">Últimas acciones</div></div>
+          <div class="live-p"><span class="ld"></span>Live</div>
+        </div>
+        <div class="feed">
+          <?php
+          $cm=['ins'=>'fi-i','pay'=>'fi-p','evt'=>'fi-e','rpt'=>'fi-r','can'=>'fi-c'];
+          $em=['ins'=>'＋','pay'=>'$','evt'=>'◉','rpt'=>'⬚','can'=>'✕'];
+          foreach($actividad as $k=>$a):?>
+          <div class="fi" style="animation-delay:<?= .42+$k*.07 ?>s">
+            <div class="fic <?= $cm[$a['tipo']] ?>"><?= $em[$a['tipo']] ?></div>
+            <div class="fab"><div class="fan"><?= htmlspecialchars($a['accion']) ?></div><div class="fad"><?= htmlspecialchars($a['det']) ?></div></div>
+            <div class="fat"><?= $a['t'] ?></div>
+          </div>
+          <?php endforeach ?>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /con -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<div id="fab" onclick="location.href='eventos/crear.php'">＋</div>
+
+<script>
+/* ─── Custom Cursor ─── */
+const cr=document.getElementById('cr'),cr2=document.getElementById('cr2');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cr.style.left=mx+'px';cr.style.top=my+'px';
+});
+(function raf(){
+  rx+=(mx-rx)*.14;ry+=(my-ry)*.14;
+  cr2.style.left=rx+'px';cr2.style.top=ry+'px';
+  requestAnimationFrame(raf);
+})();
+document.querySelectorAll('a,button,.sc,.dli,.fi,[onclick]').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cr.style.width='4px';cr.style.height='4px';cr2.style.width='50px';cr2.style.height='50px'});
+  el.addEventListener('mouseleave',()=>{cr.style.width='8px';cr.style.height='8px';cr2.style.width='34px';cr2.style.height='34px'});
+});
+
+/* ─── Particle Network Canvas ─── */
+const cnv=document.getElementById('bg'),c=cnv.getContext('2d');
+let W,H,pts=[];
+const resize=()=>{W=cnv.width=window.innerWidth;H=cnv.height=window.innerHeight};
+resize();window.addEventListener('resize',resize);
+
+class Pt{
+  constructor(){this.init()}
+  init(){
+    this.x=Math.random()*W;this.y=Math.random()*H;
+    this.vx=(Math.random()-.5)*.22;this.vy=(Math.random()-.5)*.22;
+    this.r=Math.random()*1.1+.3;
+    this.a=Math.random()*.35+.08;
+    this.col=Math.random()>.5?'0,212,255':'139,92,246';
+    this.life=0;this.max=Math.random()*350+180;
+  }
+  tick(){
+    this.x+=this.vx;this.y+=this.vy;this.life++;
+    if(this.life>this.max||this.x<0||this.x>W||this.y<0||this.y>H)this.init();
+  }
+  draw(){c.beginPath();c.arc(this.x,this.y,this.r,0,Math.PI*2);
+    c.fillStyle=`rgba(${this.col},${this.a})`;c.fill()}
+}
+for(let i=0;i<80;i++)pts.push(new Pt());
+
+(function frame(){
+  c.clearRect(0,0,W,H);
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
+      if(d<95){
+        c.beginPath();c.moveTo(pts[i].x,pts[i].y);c.lineTo(pts[j].x,pts[j].y);
+        c.strokeStyle=`rgba(0,212,255,${.06*(1-d/95)})`;c.lineWidth=.5;c.stroke();
+      }
+    }
+  }
+  pts.forEach(p=>{p.tick();p.draw()});
+  requestAnimationFrame(frame);
+})();
+
+/* ─── Live Clock ─── */
+(function tick(){
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  document.getElementById('clock').textContent=
+    `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}  ${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  setTimeout(tick,1000);
+})();
+
+/* ─── Number counters ─── */
+function easeOut(t){return 1-Math.pow(1-t,4)}
+function animN(el){
+  const v=parseFloat(el.dataset.v),fmt=el.dataset.fmt,dur=2100,s=performance.now();
+  (function f(now){
+    const t=Math.min((now-s)/dur,1),val=v*easeOut(t);
+    el.textContent=fmt==='k'?(val>=1000?(val/1000).toFixed(1)+'k':Math.round(val).toLocaleString('es-ES')):Math.round(val).toLocaleString('es-ES');
+    if(t<1)requestAnimationFrame(f);
+  })(s);
+}
+const io=new IntersectionObserver(e=>e.forEach(en=>{if(en.isIntersecting){animN(en.target);io.unobserve(en.target)}}),{threshold:.3});
+document.querySelectorAll('.cu').forEach(el=>io.observe(el));
+
+/* ─── Progress bars ─── */
+setTimeout(()=>document.querySelectorAll('.ofill').forEach(el=>el.style.width=el.dataset.w+'%'),700);
+
+/* ─── Chart.js ─── */
+Chart.defaults.color='#2e4d62';
+Chart.defaults.font.family="'Outfit',sans-serif";
+Chart.defaults.font.weight='300';
+const gc='rgba(255,255,255,.04)';
+
+// Line
+const lctx=document.getElementById('lc').getContext('2d');
+const ga=lctx.createLinearGradient(0,0,0,210);
+ga.addColorStop(0,'rgba(0,212,255,.16)');ga.addColorStop(1,'rgba(0,212,255,0)');
+const gb=lctx.createLinearGradient(0,0,0,210);
+gb.addColorStop(0,'rgba(139,92,246,.12)');gb.addColorStop(1,'rgba(139,92,246,0)');
+
+new Chart(lctx,{
+  type:'line',
+  data:{
+    labels:['Feb','Mar','Abr','May','Jun','Jul'],
+    datasets:[{
+      label:'Inscripciones',data:[320,480,395,622,715,847],
+      borderColor:'#00d4ff',backgroundColor:ga,borderWidth:1.6,tension:.42,fill:true,
+      pointBackgroundColor:'#00d4ff',pointBorderColor:'#04080f',pointBorderWidth:2,
+      pointRadius:3.5,pointHoverRadius:6,
+    },{
+      label:'Asistentes reales',data:[290,445,355,580,660,793],
+      borderColor:'#8b5cf6',backgroundColor:gb,borderWidth:1.6,tension:.42,fill:true,
+      borderDash:[5,3],
+      pointBackgroundColor:'#8b5cf6',pointBorderColor:'#04080f',pointBorderWidth:2,
+      pointRadius:3.5,pointHoverRadius:6,
+    }]
+  },
+  options:{
+    responsive:true,interaction:{mode:'index',intersect:false},
+    animation:{duration:1600,easing:'easeOutQuart'},
+    plugins:{
+      legend:{labels:{usePointStyle:true,pointStyle:'circle',font:{size:11,weight:'300'},padding:18,color:'#6e90a8'}},
+      tooltip:{backgroundColor:'#0c1525',borderColor:'rgba(0,212,255,.15)',borderWidth:1,
+        titleColor:'#deeaf2',bodyColor:'#6e90a8',padding:11,
+        titleFont:{size:12,weight:'400'},bodyFont:{size:11.5,weight:'300'}}
+    },
+    scales:{
+      x:{grid:{color:gc,drawBorder:false},ticks:{color:'#1b3044',font:{size:11,weight:'300'}},border:{display:false}},
+      y:{grid:{color:gc,drawBorder:false},ticks:{color:'#1b3044',font:{size:11,weight:'300'}},border:{display:false}}
+    }
+  }
+});
+
+// Donut
+new Chart(document.getElementById('dc'),{
+  type:'doughnut',
+  data:{
+    labels:['Activos','Finalizados','Cancelados','Pendientes'],
+    datasets:[{
+      data:[<?= $stats['eventos_activos'] ?>,<?= $stats['eventos_finalizados'] ?>,<?= $stats['eventos_cancelados'] ?>,3],
+      backgroundColor:['#00d4ff','#a3e635','#ff4d6d','#f59e0b'],
+      borderColor:'#080e1a',borderWidth:5,hoverOffset:6
+    }]
+  },
+  options:{
+    cutout:'74%',
+    animation:{animateRotate:true,duration:1900,easing:'easeOutQuart'},
+    plugins:{
+      legend:{display:false},
+      tooltip:{backgroundColor:'#0c1525',borderColor:'rgba(255,255,255,.07)',borderWidth:1,
+        titleColor:'#deeaf2',bodyColor:'#6e90a8',padding:10,
+        titleFont:{size:12,weight:'400'},bodyFont:{size:11.5,weight:'300'}}
+    }
+  }
+});
+
+/* ─── Nav hover indent ─── */
+document.querySelectorAll('.na').forEach(el=>{
+  if(!el.classList.contains('on')){
+    el.addEventListener('mouseenter',()=>el.style.paddingLeft='22px');
+    el.addEventListener('mouseleave',()=>el.style.paddingLeft='');
+  }
+});
+</script>
+</body>
+</html>

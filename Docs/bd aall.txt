@@ -1,0 +1,332 @@
+-- ============================================================
+--  SISTEMA DE GESTIÓN DE EVENTOS
+-- ============================================================
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET FOREIGN_KEY_CHECKS = 0;
+CREATE DATABASE IF NOT EXISTS gestion_eventos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE gestion_eventos;
+-- Roles de usuarios administrativos
+CREATE TABLE roles (
+    id_rol        TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre_rol    VARCHAR(50)  NOT NULL UNIQUE,
+    descripcion   VARCHAR(150) NOT NULL
+) ENGINE=InnoDB;
+
+INSERT INTO roles (nombre_rol, descripcion) VALUES
+('Administrador', 'Acceso total al sistema'),
+('Organizador',   'Gestiona eventos propios'),
+('Reportes',      'Solo lectura y generación de reportes');
+
+-- Categorías de eventos
+CREATE TABLE categorias_evento (
+    id_categoria  SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre        VARCHAR(80)  NOT NULL UNIQUE,
+    descripcion   VARCHAR(200)
+) ENGINE=InnoDB;
+
+INSERT INTO categorias_evento (nombre) VALUES
+('Conferencia'), ('Taller'), ('Seminario'), ('Concierto'), ('Deportivo'), ('Cultural');
+
+-- Estados posibles de un evento
+CREATE TABLE estados_evento (
+    id_estado    TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre       VARCHAR(40) NOT NULL UNIQUE,  -- Activo, Cancelado, Finalizado, Borrador
+    descripcion  VARCHAR(150)
+) ENGINE=InnoDB;
+
+INSERT INTO estados_evento (nombre) VALUES
+('Borrador'), ('Activo'), ('Agotado'), ('Cancelado'), ('Finalizado');
+
+-- Estados de inscripción
+CREATE TABLE estados_inscripcion (
+    id_estado_inscripcion TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre                VARCHAR(40) NOT NULL UNIQUE   -- Pendiente, Confirmada, Cancelada
+) ENGINE=InnoDB;
+
+INSERT INTO estados_inscripcion (nombre) VALUES
+('Pendiente'), ('Confirmada'), ('Cancelada'), ('Lista de espera');
+
+-- Métodos de pago
+CREATE TABLE metodos_pago (
+    id_metodo   TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre      VARCHAR(50) NOT NULL UNIQUE   -- Efectivo, Transferencia, Tarjeta, etc.
+) ENGINE=InnoDB;
+
+INSERT INTO metodos_pago (nombre) VALUES
+('Efectivo'), ('Transferencia bancaria'), ('Tarjeta crédito'), ('Tarjeta débito'), ('PayPal'), ('Otro');
+
+-- Estados de pago
+CREATE TABLE estados_pago (
+    id_estado_pago TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre         VARCHAR(40) NOT NULL UNIQUE   -- Pendiente, Confirmado, Reembolsado, Rechazado
+) ENGINE=InnoDB;
+
+INSERT INTO estados_pago (nombre) VALUES
+('Pendiente'), ('Confirmado'), ('Reembolsado'), ('Rechazado');
+
+-- Tipos de reporte (catálogo)
+CREATE TABLE tipos_reporte (
+    id_tipo_reporte TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre          VARCHAR(60) NOT NULL UNIQUE   -- Eventos, Asistencia, Financiero, Fechas
+) ENGINE=InnoDB;
+
+INSERT INTO tipos_reporte (nombre) VALUES
+('Reporte de Eventos'), ('Reporte de Asistencia'), ('Reporte Financiero'), ('Reporte por Fecha');
+
+-- Formatos de exportación
+CREATE TABLE formatos_exportacion (
+    id_formato TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre     VARCHAR(20) NOT NULL UNIQUE   -- PDF, Excel, CSV
+) ENGINE=InnoDB;
+
+INSERT INTO formatos_exportacion (nombre) VALUES ('PDF'), ('Excel'), ('CSV');
+
+-- Estados de un reporte generado
+CREATE TABLE estados_reporte (
+    id_estado_reporte TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre            VARCHAR(40) NOT NULL UNIQUE   -- Generado, Error, En proceso
+) ENGINE=InnoDB;
+
+INSERT INTO estados_reporte (nombre) VALUES ('En proceso'), ('Generado'), ('Error');
+
+-- Usuarios administradores del sistema
+CREATE TABLE usuarios_admin (
+    id_usuario   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_rol       TINYINT UNSIGNED NOT NULL,
+    nombres      VARCHAR(80)  NOT NULL,
+    apellidos    VARCHAR(80)  NOT NULL,
+    email        VARCHAR(120) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    activo       BOOLEAN NOT NULL DEFAULT TRUE,
+    creado_en    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ua_rol FOREIGN KEY (id_rol) REFERENCES roles(id_rol)
+) ENGINE=InnoDB;
+
+-- Participantes / asistentes (usuarios externos que se inscriben)
+-- Separado de usuarios_admin para no mezclar responsabilidades (2FN/3FN)
+CREATE TABLE participantes (
+    id_participante INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombres         VARCHAR(80)  NOT NULL,
+    apellidos       VARCHAR(80)  NOT NULL,
+    email           VARCHAR(120) NOT NULL UNIQUE,
+    telefono        VARCHAR(20),
+    documento_id    VARCHAR(30),                -- Cédula / Pasaporte
+    creado_en       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Sedes / lugares donde ocurren los eventos
+-- Extraída aparte para evitar dependencias transitivas en 'eventos'
+-- (dirección → ciudad → país NO debe estar en eventos)
+CREATE TABLE sedes (
+    id_sede      SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre       VARCHAR(120) NOT NULL,
+    direccion    VARCHAR(200) NOT NULL,
+    ciudad       VARCHAR(80)  NOT NULL,
+    pais         VARCHAR(80)  NOT NULL DEFAULT 'Bolivia',
+    capacidad    SMALLINT UNSIGNED,
+    referencia   VARCHAR(200)
+) ENGINE=InnoDB;
+
+-- Eventos
+CREATE TABLE eventos (
+    id_evento     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_categoria  SMALLINT UNSIGNED NOT NULL,
+    id_estado     TINYINT UNSIGNED  NOT NULL,
+    id_sede       SMALLINT UNSIGNED NOT NULL,
+    id_organizador INT UNSIGNED     NOT NULL,   -- FK a usuarios_admin
+    codigo_evento  VARCHAR(20)  NOT NULL UNIQUE,
+    titulo         VARCHAR(150) NOT NULL,
+    descripcion    TEXT,
+    fecha_inicio   DATETIME     NOT NULL,
+    fecha_fin      DATETIME     NOT NULL,
+    cupo_maximo    SMALLINT UNSIGNED NOT NULL,
+    precio_entrada DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    es_gratuito    BOOLEAN NOT NULL DEFAULT FALSE,
+    imagen_url     VARCHAR(300),
+    creado_en      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ev_categoria  FOREIGN KEY (id_categoria)  REFERENCES categorias_evento(id_categoria),
+    CONSTRAINT fk_ev_estado     FOREIGN KEY (id_estado)     REFERENCES estados_evento(id_estado),
+    CONSTRAINT fk_ev_sede       FOREIGN KEY (id_sede)       REFERENCES sedes(id_sede),
+    CONSTRAINT fk_ev_organizador FOREIGN KEY (id_organizador) REFERENCES usuarios_admin(id_usuario)
+) ENGINE=InnoDB;
+
+-- Inscripciones (relación M:N entre eventos y participantes)
+CREATE TABLE inscripciones (
+    id_inscripcion       INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_evento            INT UNSIGNED     NOT NULL,
+    id_participante      INT UNSIGNED     NOT NULL,
+    id_estado_inscripcion TINYINT UNSIGNED NOT NULL DEFAULT 1,
+    codigo_inscripcion   VARCHAR(30)  NOT NULL UNIQUE,
+    fecha_inscripcion    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    asistio              BOOLEAN      NOT NULL DEFAULT FALSE,
+    fecha_asistencia     DATETIME,
+    observaciones        VARCHAR(300),
+    CONSTRAINT fk_ins_evento       FOREIGN KEY (id_evento)        REFERENCES eventos(id_evento),
+    CONSTRAINT fk_ins_participante FOREIGN KEY (id_participante)  REFERENCES participantes(id_participante),
+    CONSTRAINT fk_ins_estado       FOREIGN KEY (id_estado_inscripcion) REFERENCES estados_inscripcion(id_estado_inscripcion),
+    UNIQUE KEY uq_evento_participante (id_evento, id_participante)
+) ENGINE=InnoDB;
+
+-- Pagos (1 pago por inscripción; si hubiera abonos se haría tabla detalle_pagos)
+CREATE TABLE pagos (
+    id_pago         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_inscripcion  INT UNSIGNED     NOT NULL UNIQUE,   -- 1 pago por inscripción
+    id_metodo       TINYINT UNSIGNED NOT NULL,
+    id_estado_pago  TINYINT UNSIGNED NOT NULL DEFAULT 1,
+    monto           DECIMAL(10,2)    NOT NULL,
+    referencia_pago VARCHAR(100),                        -- Nro. comprobante / transacción
+    fecha_pago      DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_confirmacion DATETIME,
+    CONSTRAINT fk_pago_inscripcion FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion),
+    CONSTRAINT fk_pago_metodo      FOREIGN KEY (id_metodo)      REFERENCES metodos_pago(id_metodo),
+    CONSTRAINT fk_pago_estado      FOREIGN KEY (id_estado_pago) REFERENCES estados_pago(id_estado_pago)
+) ENGINE=InnoDB;
+-- Historial de reportes generados
+-- 3FN: tipo_reporte y formato son FKs → no hay dependencias transitivas
+CREATE TABLE reportes_generados (
+    id_reporte        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_tipo_reporte   TINYINT UNSIGNED NOT NULL,
+    id_formato        TINYINT UNSIGNED NOT NULL,
+    id_estado_reporte TINYINT UNSIGNED NOT NULL DEFAULT 1,
+    id_usuario        INT UNSIGNED     NOT NULL,    -- quien lo generó
+    nombre_reporte    VARCHAR(150)     NOT NULL,
+    fecha_inicio      DATE,                          -- rango del reporte (puede ser NULL si es global)
+    fecha_fin         DATE,
+    archivo_url       VARCHAR(300),                  -- ruta del archivo generado
+    fecha_generacion  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_rg_tipo    FOREIGN KEY (id_tipo_reporte)   REFERENCES tipos_reporte(id_tipo_reporte),
+    CONSTRAINT fk_rg_formato FOREIGN KEY (id_formato)        REFERENCES formatos_exportacion(id_formato),
+    CONSTRAINT fk_rg_estado  FOREIGN KEY (id_estado_reporte) REFERENCES estados_reporte(id_estado_reporte),
+    CONSTRAINT fk_rg_usuario FOREIGN KEY (id_usuario)        REFERENCES usuarios_admin(id_usuario)
+) ENGINE=InnoDB;
+-- Estadísticas por evento (snapshot histórico, se actualiza periódicamente)
+-- 3FN: porcentaje_ocupacion se ELIMINA porque es derivado
+--       (total_inscritos / cupo_maximo * 100) → dependencia transitiva
+--       Se calcula en la consulta SQL o en PHP para respetar 3FN.
+CREATE TABLE estadisticas_evento (
+    id_estadistica      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_evento           INT UNSIGNED NOT NULL,
+    total_inscritos     SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    total_confirmados   SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    total_cancelados    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    total_asistieron    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    ingreso_total       DECIMAL(12,2)     NOT NULL DEFAULT 0.00,
+    -- porcentaje_ocupacion se calcula: (total_inscritos * 100 / cupo_maximo)
+    -- NO se almacena aquí porque depende de cupo_maximo que vive en 'eventos'
+    fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ee_evento FOREIGN KEY (id_evento) REFERENCES eventos(id_evento),
+    UNIQUE KEY uq_estadistica_evento (id_evento)   -- 1 fila por evento
+) ENGINE=InnoDB;
+
+-- Estadísticas generales del sistema (dashboard global, snapshot diario)
+-- 3FN: eventos_finalizados podría derivarse (total - activos - cancelados)
+--      pero al ser un snapshot histórico independiente, se guarda como dato.
+--      Justificación: es una foto en el tiempo, no un cálculo en vivo.
+CREATE TABLE estadisticas_generales (
+    id_estadistica_general INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    total_eventos          SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    eventos_activos        SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    eventos_cancelados     SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    eventos_finalizados    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    total_asistentes       INT UNSIGNED      NOT NULL DEFAULT 0,
+    total_ingresos         DECIMAL(14,2)     NOT NULL DEFAULT 0.00,
+    fecha_calculo          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Reporte financiero por período (también es un snapshot)
+-- 3FN: no hay dependencias transitivas; usuario y fecha son independientes
+CREATE TABLE reportes_financieros (
+    id_reporte_financiero INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_usuario            INT UNSIGNED  NOT NULL,
+    fecha_inicio          DATE          NOT NULL,
+    fecha_fin             DATE          NOT NULL,
+    total_ingresos        DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_pagos_pendientes DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_reembolsos      DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    fecha_generacion      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_rf_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios_admin(id_usuario)
+) ENGINE=InnoDB;
+-- Vista: Reporte de Eventos
+CREATE OR REPLACE VIEW v_reporte_eventos AS
+SELECT
+    e.codigo_evento,
+    e.titulo,
+    e.fecha_inicio,
+    e.fecha_fin,
+    es.nombre                          AS estado,
+    c.nombre                           AS categoria,
+    s.nombre                           AS sede,
+    e.cupo_maximo,
+    COUNT(i.id_inscripcion)            AS total_inscritos,
+    ROUND(COUNT(i.id_inscripcion) * 100.0 / e.cupo_maximo, 2) AS porcentaje_ocupacion
+FROM eventos e
+JOIN estados_evento     es ON e.id_estado    = es.id_estado
+JOIN categorias_evento  c  ON e.id_categoria = c.id_categoria
+JOIN sedes              s  ON e.id_sede      = s.id_sede
+LEFT JOIN inscripciones i  ON e.id_evento    = i.id_evento
+GROUP BY e.id_evento;
+-- Vista: Reporte de Asistencia
+CREATE OR REPLACE VIEW v_reporte_asistencia AS
+SELECT
+    e.titulo                                        AS nombre_evento,
+    e.fecha_inicio,
+    COUNT(i.id_inscripcion)                         AS total_inscritos,
+    SUM(i.asistio)                                  AS total_asistentes,
+    COUNT(i.id_inscripcion) - SUM(i.asistio)        AS total_ausentes,
+    ROUND(SUM(i.asistio) * 100.0 / NULLIF(COUNT(i.id_inscripcion), 0), 2) AS porcentaje_asistencia
+FROM eventos e
+LEFT JOIN inscripciones i ON e.id_evento = i.id_evento
+GROUP BY e.id_evento;
+-- Vista: Reporte Financiero por Evento
+CREATE OR REPLACE VIEW v_reporte_financiero AS
+SELECT
+    e.titulo                                               AS evento,
+    e.fecha_inicio,
+    SUM(CASE WHEN ep.nombre = 'Confirmado' THEN p.monto ELSE 0 END) AS total_recaudado,
+    SUM(CASE WHEN ep.nombre = 'Pendiente'  THEN p.monto ELSE 0 END) AS pagos_pendientes,
+    SUM(CASE WHEN ep.nombre = 'Reembolsado' THEN p.monto ELSE 0 END) AS total_reembolsos,
+    mp.nombre                                              AS metodo_mas_usado
+FROM eventos e
+LEFT JOIN inscripciones i  ON e.id_evento        = i.id_evento
+LEFT JOIN pagos p           ON i.id_inscripcion   = p.id_inscripcion
+LEFT JOIN estados_pago ep   ON p.id_estado_pago   = ep.id_estado_pago
+LEFT JOIN (
+    SELECT p2.id_inscripcion, mp2.nombre,
+           COUNT(*) AS cnt
+    FROM pagos p2
+    JOIN metodos_pago mp2 ON p2.id_metodo = mp2.id_metodo
+    JOIN inscripciones i2 ON p2.id_inscripcion = i2.id_inscripcion
+    GROUP BY i2.id_evento, p2.id_metodo
+) ranked ON i.id_inscripcion = ranked.id_inscripcion
+LEFT JOIN metodos_pago mp ON p.id_metodo = mp.id_metodo
+GROUP BY e.id_evento;
+-- Vista: Reporte por Rango de Fechas
+CREATE OR REPLACE VIEW v_reporte_por_fecha AS
+SELECT
+    e.titulo,
+    e.fecha_inicio,
+    e.fecha_fin,
+    es.nombre                          AS estado,
+    COUNT(i.id_inscripcion)            AS total_inscritos,
+    SUM(CASE WHEN ep.nombre = 'Confirmado' THEN p.monto ELSE 0 END) AS total_ingresos
+FROM eventos e
+JOIN estados_evento es  ON e.id_estado = es.id_estado
+LEFT JOIN inscripciones i ON e.id_evento = i.id_evento
+LEFT JOIN pagos p          ON i.id_inscripcion = p.id_inscripcion
+LEFT JOIN estados_pago ep  ON p.id_estado_pago = ep.id_estado_pago
+GROUP BY e.id_evento;
+-- ============================================================
+-- ÍNDICES ADICIONALES (mejoran rendimiento de reportes)
+-- ============================================================
+CREATE INDEX idx_eventos_estado      ON eventos(id_estado);
+CREATE INDEX idx_eventos_categoria   ON eventos(id_categoria);
+CREATE INDEX idx_eventos_fecha       ON eventos(fecha_inicio, fecha_fin);
+CREATE INDEX idx_inscripciones_evento ON inscripciones(id_evento);
+CREATE INDEX idx_pagos_estado        ON pagos(id_estado_pago);
+CREATE INDEX idx_pagos_fecha         ON pagos(fecha_pago);
+CREATE INDEX idx_reportes_usuario    ON reportes_generados(id_usuario);
+CREATE INDEX idx_reportes_fecha      ON reportes_generados(fecha_generacion);
+
+SET FOREIGN_KEY_CHECKS = 1;
