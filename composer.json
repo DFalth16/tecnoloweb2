@@ -3,7 +3,7 @@
     "description": "Event management system with MVC, Repository and Observer patterns",
     "autoload": {
         "psr-4": {
-            "App\\": "app/"
+            "EventCore\\": "src/"
         }
     },
     "require": {}
