@@ -145,7 +145,10 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
         <button type="submit" class="btn-login">Iniciar Sesión</button>
       </form>
       
-      <div class="login-footer">Sistema de gestión interna · EventCore</div>
+      <div class="login-footer">
+        ¿Eres nuevo? <a href="/drop/tecnoloweb2/register.php" style="color:var(--cyan);text-decoration:none;font-weight:500">Regístrate aquí</a><br><br>
+        Sistema de gestión interna · EventCore
+      </div>
     </div>
   </div>
 </div>
