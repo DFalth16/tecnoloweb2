@@ -1,0 +1,10 @@
+{
+    "name": "dfalth/tecnoloweb2",
+    "description": "Event management system with MVC, Repository and Observer patterns",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "require": {}
+}
