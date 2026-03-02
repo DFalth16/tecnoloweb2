@@ -4,8 +4,8 @@ namespace EventCore\Services;
 
 use EventCore\Models\Inscripcion;
 use EventCore\Repositories\InscripcionRepository;
-use EventCore\Interfaces\SubjectInterface;
-use EventCore\Interfaces\ObserverInterface;
+use EventCore\Services\Interfaces\SubjectInterface;
+use EventCore\Services\Interfaces\ObserverInterface;
 
 /**
  * Clase InscripcionService

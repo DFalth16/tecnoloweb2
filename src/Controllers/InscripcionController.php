@@ -4,9 +4,9 @@ namespace EventCore\Controllers;
 
 use EventCore\Services\InscripcionService;
 use EventCore\Repositories\InscripcionRepository;
-use EventCore\Observers\EmailObserver;
-use EventCore\Observers\LogObserver;
-use EventCore\Observers\QuotaObserver;
+use EventCore\Services\Observers\EmailObserver;
+use EventCore\Services\Observers\LogObserver;
+use EventCore\Services\Observers\QuotaObserver;
 use EventCore\Config\Database;
 
 /**

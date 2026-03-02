@@ -1,8 +1,8 @@
 <?php
 
-namespace EventCore\Observers;
+namespace EventCore\Services\Observers;
 
-use EventCore\Interfaces\ObserverInterface;
+use EventCore\Services\Interfaces\ObserverInterface;
 
 class QuotaObserver implements ObserverInterface
 {

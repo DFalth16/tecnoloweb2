@@ -1,6 +1,6 @@
 <?php
 
-namespace EventCore\Interfaces;
+namespace EventCore\Services\Interfaces;
 
 interface SubjectInterface
 {
