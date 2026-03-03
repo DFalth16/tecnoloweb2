@@ -38,18 +38,37 @@ switch ($url) {
 
     case 'eventos':
         \EventCore\Middleware\AuthMiddleware::handle();
-        $controller = new \EventCore\Controllers\EventoController();
         $action = $_GET['action'] ?? 'index';
-        $id = $_GET['id'] ?? null;
-        
-        if ($action === 'crear') {
-            $controller->create();
-        } elseif ($action === 'editar' && $id) {
-            $controller->edit($id);
-        } elseif ($action === 'eliminar' && $id) {
-            $controller->delete($id);
+        $id     = $_GET['id'] ?? null;
+
+        if ($action === 'inscritos' && $id) {
+            $controller = new \EventCore\Controllers\InscripcionController();
+            $controller->inscritos($id);
         } else {
-            $controller->index();
+            $controller = new \EventCore\Controllers\EventoController();
+            if ($action === 'crear') {
+                $controller->create();
+            } elseif ($action === 'editar' && $id) {
+                $controller->edit($id);
+            } elseif ($action === 'eliminar' && $id) {
+                $controller->delete($id);
+            } else {
+                $controller->index();
+            }
+        }
+        break;
+
+    case 'participantes':
+        \EventCore\Middleware\AuthMiddleware::handle();
+        $controller = new \EventCore\Controllers\ParticipanteController();
+        $action = $_GET['action'] ?? 'index';
+        $id     = $_GET['id'] ?? null;
+
+        switch ($action) {
+            case 'crear':    $controller->create();    break;
+            case 'editar':   $controller->edit($id);   break;
+            case 'eliminar': $controller->delete($id); break;
+            default:         $controller->index();     break;
         }
         break;
 
@@ -57,13 +76,13 @@ switch ($url) {
         \EventCore\Middleware\AuthMiddleware::handle();
         $controller = new \EventCore\Controllers\UsuarioController();
         $action = $_GET['action'] ?? 'index';
-        $id = $_GET['id'] ?? null;
-        
+        $id     = $_GET['id'] ?? null;
+
         switch($action) {
-            case 'crear':    $controller->create(); break;
-            case 'editar':   $controller->edit($id); break;
+            case 'crear':    $controller->create();    break;
+            case 'editar':   $controller->edit($id);   break;
             case 'eliminar': $controller->delete($id); break;
-            default:         $controller->index(); break;
+            default:         $controller->index();     break;
         }
         break;
 
@@ -71,13 +90,13 @@ switch ($url) {
         \EventCore\Middleware\AuthMiddleware::handle();
         $controller = new \EventCore\Controllers\SedeController();
         $action = $_GET['action'] ?? 'index';
-        $id = $_GET['id'] ?? null;
-        
+        $id     = $_GET['id'] ?? null;
+
         switch($action) {
-            case 'crear':    $controller->create(); break;
-            case 'editar':   $controller->edit($id); break;
+            case 'crear':    $controller->create();    break;
+            case 'editar':   $controller->edit($id);   break;
             case 'eliminar': $controller->delete($id); break;
-            default:         $controller->index(); break;
+            default:         $controller->index();     break;
         }
         break;
 

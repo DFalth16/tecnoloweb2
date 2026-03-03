@@ -76,12 +76,13 @@ nav{flex:1;overflow-y:auto;padding-bottom:10px}
     </a>
     <p class="sb-lbl">Principal</p>
     <nav>
-      <a class="na on" href="<?= BASE_URL ?>/dashboard">Dashboard</a>
-      <a class="na" href="<?= BASE_URL ?>/eventos?action=index">Eventos</a>
-      <a class="na" href="<?= BASE_URL ?>/usuarios?action=index">Usuarios</a>
-      <a class="na" href="<?= BASE_URL ?>/sedes?action=index">Sedes</a>
+      <a class="na on" href="<?= BASE_URL ?>/dashboard">📊 Dashboard</a>
+      <a class="na" href="<?= BASE_URL ?>/eventos?action=index">🗓 Eventos</a>
+      <a class="na" href="<?= BASE_URL ?>/participantes?action=index">👥 Participantes</a>
+      <a class="na" href="<?= BASE_URL ?>/usuarios?action=index">👤 Usuarios</a>
+      <a class="na" href="<?= BASE_URL ?>/sedes?action=index">📍 Sedes</a>
       <div style="margin:20px 18px;border-top:1px solid var(--border)"></div>
-      <a class="na" href="<?= BASE_URL ?>/logout">Cerrar Sesión</a>
+      <a class="na" href="<?= BASE_URL ?>/logout">🚪 Cerrar Sesión</a>
     </nav>
   </aside>
   <div class="main">

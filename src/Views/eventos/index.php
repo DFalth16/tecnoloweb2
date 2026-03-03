@@ -67,12 +67,15 @@ body{font-family:'Outfit',sans-serif;font-weight:300;background:var(--c0);color:
       <div class="sb-icon">⚡</div>
       <span class="sb-name"><b>Event</b>Core</span>
     </a>
-    <nav style="margin-top:20px">
-      <a class="na" href="<?= BASE_URL ?>/dashboard">Dashboard</a>
-      <a class="na on" href="<?= BASE_URL ?>/eventos">Eventos</a>
-      <a class="na" href="<?= BASE_URL ?>/usuarios">Usuarios</a>
-      <a class="na" href="<?= BASE_URL ?>/sedes">Sedes</a>
-      <a class="na" href="<?= BASE_URL ?>/logout">Cerrar Sesión</a>
+    <p style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:1.5px;padding:12px 18px 6px;font-weight:600">Principal</p>
+    <nav>
+      <a class="na" href="<?= BASE_URL ?>/dashboard">📊 Dashboard</a>
+      <a class="na on" href="<?= BASE_URL ?>/eventos?action=index">🗓 Eventos</a>
+      <a class="na" href="<?= BASE_URL ?>/participantes?action=index">👥 Participantes</a>
+      <a class="na" href="<?= BASE_URL ?>/usuarios?action=index">👤 Usuarios</a>
+      <a class="na" href="<?= BASE_URL ?>/sedes?action=index">📍 Sedes</a>
+      <div style="margin:20px 18px;border-top:1px solid var(--border)"></div>
+      <a class="na" href="<?= BASE_URL ?>/logout">🚪 Cerrar Sesión</a>
     </nav>
   </aside>
   <div class="main">
@@ -112,7 +115,8 @@ body{font-family:'Outfit',sans-serif;font-weight:300;background:var(--c0);color:
               </td>
               <td><span class="sbg <?= strtolower($ev['estado']) ?>"><?= $ev['estado'] ?></span></td>
               <td>
-                <div style="display:flex;gap:8px">
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <a href="<?= BASE_URL ?>/eventos?action=inscritos&id=<?= $ev['id_evento'] ?>" style="color:var(--lime);text-decoration:none;font-size:12px;font-weight:500">Inscritos</a>
                   <a href="<?= BASE_URL ?>/eventos?action=editar&id=<?= $ev['id_evento'] ?>" style="color:var(--cyan);text-decoration:none;font-size:12px">Editar</a>
                   <a href="<?= BASE_URL ?>/eventos?action=eliminar&id=<?= $ev['id_evento'] ?>" style="color:var(--rose);text-decoration:none;font-size:12px" onclick="return confirm('¿Cancelar este evento?')">Cancelar</a>
                 </div>

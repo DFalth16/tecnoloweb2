@@ -7,13 +7,13 @@ $e = function($str) { return htmlspecialchars($str ?? ''); };
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>EventCore · Crear Sede</title>
+<title>EventCore · Editar Participante</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --c0:#04080f;--c1:#080e1a;--c2:#0c1525;
-  --border:rgba(255,255,255,0.055);
+  --border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.1);
   --cyan:#00d4ff;--cyan2:#0099cc;--cyan-gs:rgba(0,212,255,0.055);
   --rose:#ff4d6d;
   --t1:#deeaf2;--t2:#6e90a8;--t4:#1b3044;
@@ -47,7 +47,7 @@ body{font-family:'Outfit',sans-serif;font-weight:300;background:var(--c0);color:
 .btn-p{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#000;box-shadow:0 4px 15px rgba(0,212,255,0.2)}
 .btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,212,255,0.4)}
 .btn-g{background:rgba(255,255,255,0.03);color:var(--t1);border:1px solid var(--border)}
-.btn-g:hover{background:rgba(255,255,255,0.06);transform:translateY(-2px)}
+.btn-g:hover{background:rgba(255,255,255,0.06)}
 .flash-error{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.2);color:var(--rose);padding:18px;border-radius:12px;margin-bottom:30px;font-size:13.5px}
 </style>
 </head>
@@ -62,9 +62,9 @@ body{font-family:'Outfit',sans-serif;font-weight:300;background:var(--c0);color:
     <nav>
       <a class="na" href="<?= BASE_URL ?>/dashboard">📊 Dashboard</a>
       <a class="na" href="<?= BASE_URL ?>/eventos?action=index">🗓 Eventos</a>
-      <a class="na" href="<?= BASE_URL ?>/participantes?action=index">👥 Participantes</a>
+      <a class="na on" href="<?= BASE_URL ?>/participantes?action=index">👥 Participantes</a>
       <a class="na" href="<?= BASE_URL ?>/usuarios?action=index">👤 Usuarios</a>
-      <a class="na on" href="<?= BASE_URL ?>/sedes?action=index">📍 Sedes</a>
+      <a class="na" href="<?= BASE_URL ?>/sedes?action=index">📍 Sedes</a>
       <div style="margin:20px 18px;border-top:1px solid var(--border)"></div>
       <a class="na" href="<?= BASE_URL ?>/logout">🚪 Cerrar Sesión</a>
     </nav>
@@ -72,8 +72,8 @@ body{font-family:'Outfit',sans-serif;font-weight:300;background:var(--c0);color:
   <div class="main">
     <div class="con">
       <div style="margin-bottom:30px;display:flex;justify-content:space-between;align-items:center">
-        <h2 style="font-weight:200;font-size:28px">Nueva <strong>Sede</strong></h2>
-        <a href="<?= BASE_URL ?>/sedes" class="btn btn-g">← Volver</a>
+        <h2 style="font-weight:200;font-size:28px">Editar <strong>Participante</strong></h2>
+        <a href="<?= BASE_URL ?>/participantes" class="btn btn-g">← Volver</a>
       </div>
 
       <?php if (!empty($errors)): ?>
@@ -84,31 +84,33 @@ body{font-family:'Outfit',sans-serif;font-weight:300;background:var(--c0);color:
 
       <div class="card">
         <form method="POST">
-          <div class="form-group">
-            <label>Nombre de la Sede</label>
-            <input type="text" name="nombre" class="form-control" required value="<?= $e($_POST['nombre'] ?? '') ?>" placeholder="Ej. Auditorio Central">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombres</label>
+              <input type="text" name="nombres" class="form-control" required value="<?= $e($_POST['nombres']  ?? $participante['nombres']) ?>">
+            </div>
+            <div class="form-group">
+              <label>Apellidos</label>
+              <input type="text" name="apellidos" class="form-control" required value="<?= $e($_POST['apellidos'] ?? $participante['apellidos']) ?>">
+            </div>
           </div>
           <div class="form-group">
-            <label>Dirección Física</label>
-            <input type="text" name="direccion" class="form-control" required value="<?= $e($_POST['direccion'] ?? '') ?>" placeholder="Ej. Calle 123, Zona Norte">
+            <label>Correo Electrónico</label>
+            <input type="email" name="email" class="form-control" required value="<?= $e($_POST['email'] ?? $participante['email']) ?>">
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Ciudad</label>
-              <input type="text" name="ciudad" class="form-control" required value="<?= $e($_POST['ciudad'] ?? '') ?>" placeholder="Ej. La Paz">
+              <label>Teléfono</label>
+              <input type="text" name="telefono" class="form-control" value="<?= $e($_POST['telefono'] ?? $participante['telefono']) ?>">
             </div>
             <div class="form-group">
-              <label>País</label>
-              <input type="text" name="pais" class="form-control" value="<?= $e($_POST['pais'] ?? 'Bolivia') ?>">
+              <label>Documento de Identidad</label>
+              <input type="text" name="documento_id" class="form-control" value="<?= $e($_POST['documento_id'] ?? $participante['documento_id']) ?>">
             </div>
           </div>
-          <div class="form-group">
-            <label>Capacidad Máxima (Aforo)</label>
-            <input type="number" name="capacidad" class="form-control" required min="1" value="<?= $e($_POST['capacidad'] ?? '') ?>" placeholder="Ej. 500">
-          </div>
           <div style="margin-top:30px;display:flex;gap:15px">
-            <button type="submit" class="btn btn-p" style="flex:1">Registrar Sede</button>
-            <a href="<?= BASE_URL ?>/sedes" class="btn btn-g">Cancelar</a>
+            <button type="submit" class="btn btn-p" style="flex:1">Guardar Cambios</button>
+            <a href="<?= BASE_URL ?>/participantes" class="btn btn-g">Cancelar</a>
           </div>
         </form>
       </div>
