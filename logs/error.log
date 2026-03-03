@@ -1,0 +1,48 @@
+[02-Mar-2026 22:13:26 America/La_Paz] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.nombre' in 'field list' in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php:17
+Stack trace:
+#0 C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php(17): PDO->query('\r\n            S...')
+#1 C:\xampp\htdocs\drop\tecnoloweb2\public\index.php(48): EventCore\Controllers\UsuarioController->index()
+#2 {main}
+  thrown in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php on line 17
+[02-Mar-2026 22:13:32 America/La_Paz] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.nombre' in 'field list' in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php:17
+Stack trace:
+#0 C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php(17): PDO->query('\r\n            S...')
+#1 C:\xampp\htdocs\drop\tecnoloweb2\public\index.php(48): EventCore\Controllers\UsuarioController->index()
+#2 {main}
+  thrown in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php on line 17
+[02-Mar-2026 22:14:00 America/La_Paz] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.nombre' in 'field list' in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php:17
+Stack trace:
+#0 C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php(17): PDO->query('\r\n            S...')
+#1 C:\xampp\htdocs\drop\tecnoloweb2\public\index.php(48): EventCore\Controllers\UsuarioController->index()
+#2 {main}
+  thrown in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php on line 17
+[02-Mar-2026 22:18:38 America/La_Paz] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.nombre' in 'field list' in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php:17
+Stack trace:
+#0 C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php(17): PDO->query('\r\n            S...')
+#1 C:\xampp\htdocs\drop\tecnoloweb2\public\index.php(63): EventCore\Controllers\UsuarioController->index()
+#2 {main}
+  thrown in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php on line 17
+[02-Mar-2026 22:18:39 America/La_Paz] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.nombre' in 'field list' in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php:17
+Stack trace:
+#0 C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php(17): PDO->query('\r\n            S...')
+#1 C:\xampp\htdocs\drop\tecnoloweb2\public\index.php(63): EventCore\Controllers\UsuarioController->index()
+#2 {main}
+  thrown in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php on line 17
+[02-Mar-2026 22:18:39 America/La_Paz] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.nombre' in 'field list' in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php:17
+Stack trace:
+#0 C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php(17): PDO->query('\r\n            S...')
+#1 C:\xampp\htdocs\drop\tecnoloweb2\public\index.php(63): EventCore\Controllers\UsuarioController->index()
+#2 {main}
+  thrown in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php on line 17
+[02-Mar-2026 22:18:39 America/La_Paz] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.nombre' in 'field list' in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php:17
+Stack trace:
+#0 C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php(17): PDO->query('\r\n            S...')
+#1 C:\xampp\htdocs\drop\tecnoloweb2\public\index.php(63): EventCore\Controllers\UsuarioController->index()
+#2 {main}
+  thrown in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\UsuarioController.php on line 17
+[02-Mar-2026 22:36:24 America/La_Paz] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'id_usuario_admin' in 'field list' in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\SedeController.php:35
+Stack trace:
+#0 C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\SedeController.php(35): PDO->prepare('INSERT INTO sed...')
+#1 C:\xampp\htdocs\drop\tecnoloweb2\public\index.php(77): EventCore\Controllers\SedeController->create()
+#2 {main}
+  thrown in C:\xampp\htdocs\drop\tecnoloweb2\src\Controllers\SedeController.php on line 35
