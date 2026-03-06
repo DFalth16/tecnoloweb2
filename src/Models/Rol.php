@@ -2,10 +2,7 @@
 
 namespace EventCore\Models;
 
-/**
- * Clase Rol
- * Representa un rol de usuario en el sistema.
- */
+//clase rol
 class Rol {
     public $id;
     public $nombre;

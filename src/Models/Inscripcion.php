@@ -2,10 +2,7 @@
 
 namespace EventCore\Models;
 
-/**
- * Clase Inscripcion
- * Representa la inscripción de un participante en un evento.
- */
+//inscripcion de participante 
 class Inscripcion
 {
     public $id;

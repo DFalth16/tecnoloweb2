@@ -2,10 +2,7 @@
 
 namespace EventCore\Models;
 
-/**
- * Clase Usuario
- * Representa un usuario administrador del sistema.
- */
+//clase usuario del sistema
 class Usuario {
     public $id;
     public $id_rol;

@@ -5,10 +5,10 @@ namespace EventCore\Config;
 use PDO;
 use Exception;
 
-/**
- * Clase Database (Singleton)
- * Gestiona la conexión única a la base de datos.
- */
+
+ //Clase Database
+ //Gestiona la conexión única a la base de datos.
+
 class Database {
     private static $instance = null;
     private $pdo;
